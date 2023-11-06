@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 
 class SVM_HingeLoss:
     def __init__(self):
-        self.C = 0.5
-        self.lr = 0.0001
-        self.epochs = 10000
+        self.C = 0.01
+        self.lr = 0.001
+        self.epochs = 100
 
     def hingeloss(self, x, y, w, b):
         u = y * ((np.dot(w, x.T)) + b)
@@ -46,9 +46,9 @@ class SVM_HingeLoss:
 
 class SVM_HingeLoss_MiniBatch:
     def __init__(self):
-        self.C = 0.5
-        self.lr = 0.0001
-        self.epochs = 10000
+        self.C = 0.01
+        self.lr = 0.001
+        self.epochs = 100
 
     def hingeloss(self, x, y, w, b):
         u = y * ((np.dot(w, x.T)) + b)
@@ -63,6 +63,7 @@ class SVM_HingeLoss_MiniBatch:
         w_list = []
         b_list = []
         w = w.T
+        print(X_.shape, Y_.shape)
         for i in range(self.epochs):
             for batch in range(0, len(X_), batch_size):
                 X = X_[batch:batch + batch_size, :]
