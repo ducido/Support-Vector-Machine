@@ -1,6 +1,5 @@
 import pygame
 import color
-from random import randint
 import threading
 from sklearn.cluster import KMeans
 import numpy as np
