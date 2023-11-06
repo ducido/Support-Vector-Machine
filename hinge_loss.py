@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 #         return loss[0][0]
 
 
-#     def fit(self, X, Y, w, b, batch_size=100, learning_rate=0.001, epochs=100000):
+#     def fit(self, X, Y, w, b, batch_size=100, learning_rate=0.001, epochs=100):
 #         Y = Y.T
 
 #         # The number of Samples in X
@@ -34,7 +34,9 @@ import matplotlib.pyplot as plt
 
 #         w = w.T
 #         losses = []
-
+#         w_list = []
+#         b_list = []
+#         optimizer = AdamOptimizer(learning_rate=0.001)
 #         for i in range(epochs):
 #             l = self.hingeloss(w, b, X, Y)
 
@@ -60,15 +62,59 @@ import matplotlib.pyplot as plt
 #                             gradw += c * Y[x] * X[x]
 #                             # w.r.t b
 #                             gradb += c * Y[x]
-
+#                 grads = [gradw, gradb]
+#                 params = [w, b]
+#                 params = optimizer.update(params, grads)
+#                 w, b = params
 #                 # Updating weights and bias
 #                 w = w - learning_rate * w + learning_rate * gradw
 #                 b = b + learning_rate * gradb
-
+                
+                
+#                 w_list.append(w.T)
+#                 b_list.append(b[0])
 #         self.w = w.T
 #         self.b = b
 
-#         return self.w, self.b, losses
+#         return w_list, b_list, losses
+    
+class AdamOptimizer:
+  def __init__(self, learning_rate=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08):
+    self.learning_rate = learning_rate
+    self.beta_1 = beta_1
+    self.beta_2 = beta_2
+    self.epsilon = epsilon
+    self.t = 0  # Time step
+    self.m = None  # First moment estimate
+    self.v = None  # Second moment estimate
+
+  def update(self, params, grads):
+    if self.m is None:
+        self.m = [np.zeros_like(param) for param in params]
+    if self.v is None:
+        self.v = [np.zeros_like(param) for param in params]
+
+    self.t += 1
+    learning_rate_t = self.learning_rate * np.sqrt(1 - self.beta_2 ** self.t) / (1 - self.beta_1 ** self.t)
+
+    for i in range(len(params)):
+      # Update biased first moment estimate
+      self.m[i] = self.beta_1 * self.m[i] + (1 - self.beta_1) * grads[i]
+      
+      # Update biased second moment estimate
+      self.v[i] = self.beta_2 * self.v[i] + (1 - self.beta_2) * (grads[i] ** 2)
+
+      # Compute bias-corrected first and second moment estimates
+      m_hat = self.m[i] / (1 - self.beta_1 ** self.t)
+      v_hat = self.v[i] / (1 - self.beta_2 ** self.t)
+
+      # Update parameters
+      params[i] -= learning_rate_t * m_hat / (np.sqrt(v_hat) + self.epsilon)
+
+    return params
+
+
+
 
 class SVM_HingeLoss:
     def __init__(self):
@@ -89,6 +135,7 @@ class SVM_HingeLoss:
         w_list = []
         b_list = []
         w = w.T
+        #optimizer = AdamOptimizer(learning_rate=0.001)
         for i in range(self.epochs):
             u = Y * (np.dot(w, X.T) + b)
             H = np.where(u < 1)[1]
@@ -99,6 +146,12 @@ class SVM_HingeLoss:
 
             YH = Y[:,H]
             gradb = self.C * np.sum(-YH, axis= 1)
+            
+            #modify the weight with ADAM 
+            # grads = [gradw, gradb]
+            # params = [w, b]
+            # params = optimizer.update(params, grads)
+            # w, b = params
 
             w = w - self.lr * gradw
             b = b - self.lr * gradb

@@ -127,7 +127,7 @@ valid_list = []
 w0 = None
 class1 = False
 class2 = False
-model = SVM()
+model = SVM_HingeLoss()
 hard_dual = Hard_margin()
 
 while running:

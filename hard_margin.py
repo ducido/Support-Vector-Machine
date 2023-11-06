@@ -42,24 +42,20 @@ class Hard_margin:
         solvers.options['show_progress'] = False
         sol = solvers.qp(K, p, G, h, A, b)
 
+        
         l = np.array(sol['x'])
         new_X = np.concatenate((X0.T, X1.T), axis = 1)
-
-        S = np.where(l > 1e-5)[0] # support set 
+        S = np.where(l > 1e-5)[0]  
         S2 = np.where(l < .999*self.C)[0] 
-
-        M = [val for val in S if val in S2] # intersection of two lists
-        XT = new_X.T # we need each column to be one data point in this alg
+        M = [val for val in S if val in S2] 
+        XT = new_X.T 
         VS = V[:, S]
         lS = l[S]
         yM = y[:, M]
         XM = XT[M]
-        # yM = np.take(y, M, mode='clip')
-
-        # XM = np.take(XT, M, mode='clip')
-
         w_dual = VS.dot(lS).reshape(-1, 1)
         b_dual = np.mean(yM.T - w_dual.T.dot(XM.T))
+        
         print(w_dual.T, b_dual) 
         return w_dual, b_dual
 
