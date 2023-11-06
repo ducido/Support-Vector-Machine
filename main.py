@@ -39,15 +39,6 @@ def set_up():
     #draw panel
     pygame.draw.rect(screen, color.WHITE, (15,15,1080,550))
     pygame.draw.rect(screen, color.BLACK, (16,16,1078,548))
-    # #draw - + K
-    # pygame.draw.rect(screen, color.WHITE, (35,426,150,30))
-    # pygame.draw.rect(screen, color.GRAY, (36,427,30,28))
-    # pygame.draw.rect(screen, color.GRAY, (154,427,30,28))
-    # pygame.draw.rect(screen, color.BLACK, (67,427,86,28))
-    # text_K = font.render('LD  = ' + str(LD), True, color.WHITE)
-    # screen.blit(text_K, (81,427))
-    # screen.blit(text_minus, (46.5,419))
-    # screen.blit(text_plus, (162,421))
     #draw class 1 2
     pygame.draw.rect(screen, color.WHITE, (100, 596, 80, 30))
     pygame.draw.rect(screen, color.GRAY, (101,597,78,28))
@@ -67,10 +58,14 @@ def set_up():
     pygame.draw.rect(screen, color.WHITE, (340, 650, 80, 30))
     pygame.draw.rect(screen, color.GRAY, (341,651,78,28))
     screen.blit(text_hard, (348,653.5))
-    #draw soft margin dual
+    #draw logistic
     pygame.draw.rect(screen, color.WHITE, (457, 650, 80, 30))
     pygame.draw.rect(screen, color.GRAY, (458,651,78,28))
-    screen.blit(text_soft_dual, (465,653.5))
+    screen.blit(text_logistic, (465,653.5))
+    #draw train minibatch
+    pygame.draw.rect(screen, color.WHITE, (584, 650, 80, 30))
+    pygame.draw.rect(screen, color.GRAY, (585,651,78,28))
+    screen.blit(text_train_mnb, (590,653.5))
     #draw random
     pygame.draw.rect(screen, color.WHITE, (339, 596, 110, 30))
     pygame.draw.rect(screen, color.GRAY, (340,597,108,28))
@@ -110,6 +105,7 @@ font_small_2 = pygame.font.SysFont('sans', 18)
 text_minus = font_big_1.render('-', True, color.WHITE)
 text_plus = font_big_1.render('+', True, color.WHITE)
 text_train = font_small_1.render('TRAIN', True, color.WHITE)
+text_train_mnb = font_small_1.render('TRAIN B', True, color.WHITE)
 text_random = font_small_1.render('RANDOM', True, color.WHITE)
 text_al = font_small_1.render('USE ALGORITHM', True, color.WHITE)
 text_reset = font_small_1.render('RESET', True, color.WHITE)
@@ -117,7 +113,7 @@ text_class1 = font_small_1.render('CLASS 1', True, color.WHITE)
 text_class2 = font_small_1.render('CLASS 2', True, color.WHITE)
 text_predict = font_small_1.render('PREDICT', True, color.WHITE)
 text_hard = font_small_1.render('HARD', True, color.WHITE)
-text_soft_dual = font_small_1.render('Logistic', True, color.WHITE)
+text_logistic = font_small_1.render('LOGISTIC', True, color.WHITE)
 
 iter = 0
 error = 0
@@ -127,7 +123,8 @@ valid_list = []
 w0 = None
 class1 = False
 class2 = False
-model = SVM_HingeLoss()
+svm_batch = SVM_HingeLoss_MiniBatch()
+svm = SVM_HingeLoss()
 hard_dual = Hard_margin()
 logistic_model = LogisticRegression()
 
@@ -145,18 +142,22 @@ while running:
             # active TRAIN
             if 224 < mouse_x < 302 and 597 < mouse_y < 625:
                 if w0 is not None and points:
+                    w_list = []
                     train_p = [i for i in points if i[-1] != 0]
                     X, y = process(train_p)
-                    w_list, b_list, error = model.fit(X,y, w0, b0)
+                    w_list, b_list, error = svm.fit(X,y, w0, b0)
                     draw = True
                     for i in range(len(w_list)):
                         valid_0 = draw_line(w_list[i], b_list[i])
-                        x1, y1, x2, y2 = valid_0[0][0], valid_0[0][1], valid_0[-1][0], valid_0[-1][1]
-                        valid_list.append([x1, y1, x2, y2])
+                        if valid_0:
+                            x1, y1, x2, y2 = valid_0[0][0], valid_0[0][1], valid_0[-1][0], valid_0[-1][1]
+                            valid_list.append([x1, y1, x2, y2])
 
                     threading.Thread(target= time_draw).start()
                     w = w_list[-1]
                     b = b_list[-1]
+                    w0 = w
+                    b0 = b
                     valid = draw_line(w, b)
 
             # active RANDOM
@@ -192,7 +193,7 @@ while running:
                  
                 pass
 
-            # active soft dual
+            # active logistic regression
             if 458 < mouse_x < 536 and 651 < mouse_y < 679:
                 train_p = [i for i in points if i[-1] != 0]
                 X, y = process(train_p)
@@ -204,13 +205,35 @@ while running:
                 valid = draw_line(w.T, b)
                 pass
 
+            # active train batch
+            if 585 < mouse_x < 663 and 651 < mouse_y < 679:
+                if w0 is not None and points:
+                    w_list = []
+                    train_p = [i for i in points if i[-1] != 0]
+                    X, y = process(train_p)
+                    w_list, b_list, error = svm_batch.fit(X,y, w0, b0)
+                    draw = True
+                    for i in range(len(w_list)):
+                        valid_0 = draw_line(w_list[i], b_list[i])
+                        if valid_0:
+                            x1, y1, x2, y2 = valid_0[0][0], valid_0[0][1], valid_0[-1][0], valid_0[-1][1]
+                            valid_list.append([x1, y1, x2, y2])
+
+                    threading.Thread(target= time_draw).start()
+                    w = w_list[-1]
+                    b = b_list[-1]
+                    w0 = w
+                    b0 = b
+                    valid = draw_line(w, b)
+
             # active predict
             if 224 < mouse_x < 302 and 651 < mouse_y < 679:
                 pre_p = [i for i in points if i[-1] == 0]
-                X, y = process(pre_p)
-                pred = predict(X, w, b)
-                p = np.concatenate([X, pred], axis= 1)
-                points += list(p)
+                if pre_p:
+                    X, y = process(pre_p)
+                    pred = predict(X, w, b)
+                    p = np.concatenate([X, pred], axis= 1)
+                    points += list(p)
                 pass
             
             # active RESET

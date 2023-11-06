@@ -2,77 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-# class SVM:
-
-#     def __init__(self, C = 0.0001):
-#         # C = error term
-#         self.C = C
-#         self.w = 0
-#         self.b = 0
-
-#     # Hinge Loss Function / Calculation
-#     def hingeloss(self, w, b, x, y):
-#         # Regularizer term
-#         reg = 0.5 * np.dot(w, w.T)
-#         opt_term = y * ((np.dot(w, x.T)) + b)
-#         loss = reg + self.C * np.maximum(0, 1-opt_term)
-#         return loss[0][0]
-
-
-#     def fit(self, X, Y, w, b, batch_size=100, learning_rate=0.001, epochs=100000):
-#         Y = Y.T
-
-#         # The number of Samples in X
-#         number_of_samples = X.shape[0]
-
-#         c = self.C
-
-#         # Creating ids from 0 to number_of_samples - 1
-#         ids = np.arange(number_of_samples)
-
-#         np.random.shuffle(ids)
-
-#         w = w.T
-#         losses = []
-
-#         for i in range(epochs):
-#             l = self.hingeloss(w, b, X, Y)
-
-#             losses.append(l)
-
-#             # Starting from 0 to the number of samples with batch_size as interval
-#             for batch_initial in range(0, number_of_samples, batch_size):
-#                 gradw = 0
-#                 gradb = 0
-
-#                 for j in range(batch_initial, batch_initial+ batch_size):
-#                     if j < number_of_samples:
-#                         x = ids[j]
-#                         ti = Y[x] * (np.dot(w, X[x].T) + b)
-
-#                         if ti > 1:
-#                             gradw += 0
-#                             gradb += 0
-#                         else:
-#                             # Calculating the gradients
-
-#                             #w.r.t w
-#                             gradw += c * Y[x] * X[x]
-#                             # w.r.t b
-#                             gradb += c * Y[x]
-
-#                 # Updating weights and bias
-#                 w = w - learning_rate * w + learning_rate * gradw
-#                 b = b + learning_rate * gradb
-
-#         self.w = w.T
-#         self.b = b
-
-#         return self.w, self.b, losses
-
 class SVM_HingeLoss:
     def __init__(self):
-        self.C = 0.01
+        self.C = 0.5
         self.lr = 0.0001
         self.epochs = 10000
 
@@ -102,6 +34,51 @@ class SVM_HingeLoss:
 
             w = w - self.lr * gradw
             b = b - self.lr * gradb
+
+            if i % int(self.epochs/100) == 0:
+                w_list.append(w.T)
+                b_list.append(b[0])
+
+            loss = self.hingeloss(X, Y, w, b)
+            if loss < 1e-3:
+                break
+        return w_list, b_list, loss
+
+class SVM_HingeLoss_MiniBatch:
+    def __init__(self):
+        self.C = 0.5
+        self.lr = 0.0001
+        self.epochs = 10000
+
+    def hingeloss(self, x, y, w, b):
+        u = y * ((np.dot(w, x.T)) + b)
+        loss =  0.5 * np.dot(w, w.T) + self.C * np.maximum(0, 1-u)
+        return loss[0][0]
+
+    def fit(self, X_, Y_, w, b, batch_size= 10):
+        '''
+        X: Nx2    Y: 1xN
+        w: 2x1    b: scalar
+        '''
+        w_list = []
+        b_list = []
+        w = w.T
+        for i in range(self.epochs):
+            for batch in range(0, len(X_), batch_size):
+                X = X_[batch:batch + batch_size, :]
+                Y = Y_[:, batch:batch + batch_size]
+                u = Y * (np.dot(w, X.T) + b)
+                H = np.where(u < 1)[1]
+
+                Z = Y.T * X
+                ZH = Z[H, :]
+                gradw = w + self.C * np.sum(-ZH, axis= 0)
+
+                YH = Y[:,H]
+                gradb = self.C * np.sum(-YH, axis= 1)
+
+                w = w - self.lr * gradw
+                b = b - self.lr * gradb
 
             if i % int(self.epochs/100) == 0:
                 w_list.append(w.T)
