@@ -8,6 +8,7 @@ from hinge_loss import *
 import time
 from sklearn.svm import SVC
 from hard_margin import Hard_margin
+from sklearn.linear_model import LogisticRegression
 
 def draw_line(w, b):
     print(np.round(w, 3), np.round(b, 3))
@@ -117,7 +118,7 @@ text_class1 = font_small_1.render('CLASS 1', True, color.WHITE)
 text_class2 = font_small_1.render('CLASS 2', True, color.WHITE)
 text_predict = font_small_1.render('PREDICT', True, color.WHITE)
 text_hard = font_small_1.render('HARD', True, color.WHITE)
-text_soft_dual = font_small_1.render('SOFT', True, color.WHITE)
+text_soft_dual = font_small_1.render('Logistic', True, color.WHITE)
 
 iter = 0
 error = 0
@@ -127,8 +128,9 @@ valid_list = []
 w0 = None
 class1 = False
 class2 = False
-model = SVM()
+model = SVM_HingeLoss()
 hard_dual = Hard_margin()
+logistic_model = LogisticRegression()
 
 while running:
     clock.tick(60)
@@ -146,7 +148,7 @@ while running:
                 if w0 is not None and points:
                     train_p = [i for i in points if i[-1] != 0]
                     X, y = process(train_p)
-                    w_list, b_list, losses = model.fit(X,y, w0, b0)
+                    w_list, b_list, error = model.fit(X,y, w0, b0)
                     draw = True
                     for i in range(len(w_list)):
                         valid_0 = draw_line(w_list[i], b_list[i])
@@ -195,7 +197,12 @@ while running:
             if 458 < mouse_x < 536 and 651 < mouse_y < 679:
                 train_p = [i for i in points if i[-1] != 0]
                 X, y = process(train_p)
-                                
+
+                logistic_model.fit(X, y.T)
+
+                w = logistic_model.coef_
+                b = logistic_model.intercept_[0]
+                valid = draw_line(w.T, b)
                 pass
 
             # active predict
@@ -257,33 +264,30 @@ while running:
 
     # draw line
     try:
-
-        # print((valid[0][0], valid[0][1]), (valid[-1][0], valid[-1][1]))
         pygame.draw.line(screen, color.PINK, (valid[0][0], valid[0][1]), (valid[-1][0], valid[-1][1]))
-    except: pass #print("bugggggggggggggggggggggggggggggggggggggggggggggggggggggggggg")
+        if draw:      
+            i = 0
+            pygame.draw.line(screen, color.PINK, (valid_list[i][0], valid_list[i][1]), (valid_list[i][2], valid_list[i][3]))
+            i += 10
+            pygame.draw.line(screen, color.PINK, (valid_list[i][0], valid_list[i][1]), (valid_list[i][2], valid_list[i][3]))
+            i += 10
+            pygame.draw.line(screen, color.PINK, (valid_list[i][0], valid_list[i][1]), (valid_list[i][2], valid_list[i][3]))
+            i += 10
+            pygame.draw.line(screen, color.PINK, (valid_list[i][0], valid_list[i][1]), (valid_list[i][2], valid_list[i][3]))
+            i += 10
+            pygame.draw.line(screen, color.PINK, (valid_list[i][0], valid_list[i][1]), (valid_list[i][2], valid_list[i][3]))
+            i += 10
+            pygame.draw.line(screen, color.PINK, (valid_list[i][0], valid_list[i][1]), (valid_list[i][2], valid_list[i][3]))
+            i += 10
+            pygame.draw.line(screen, color.PINK, (valid_list[i][0], valid_list[i][1]), (valid_list[i][2], valid_list[i][3]))
+            i += 10
+            pygame.draw.line(screen, color.PINK, (valid_list[i][0], valid_list[i][1]), (valid_list[i][2], valid_list[i][3]))
+            i += 10
+            pygame.draw.line(screen, color.PINK, (valid_list[i][0], valid_list[i][1]), (valid_list[i][2], valid_list[i][3]))
+            i += 10
+            pygame.draw.line(screen, color.PINK, (valid_list[i][0], valid_list[i][1]), (valid_list[i][2], valid_list[i][3]))
 
-    if draw:      
-        i = 0
-        pygame.draw.line(screen, color.PINK, (valid_list[i][0], valid_list[i][1]), (valid_list[i][2], valid_list[i][3]))
-        i += 10
-        pygame.draw.line(screen, color.PINK, (valid_list[i][0], valid_list[i][1]), (valid_list[i][2], valid_list[i][3]))
-        i += 10
-        pygame.draw.line(screen, color.PINK, (valid_list[i][0], valid_list[i][1]), (valid_list[i][2], valid_list[i][3]))
-        i += 10
-        pygame.draw.line(screen, color.PINK, (valid_list[i][0], valid_list[i][1]), (valid_list[i][2], valid_list[i][3]))
-        i += 10
-        pygame.draw.line(screen, color.PINK, (valid_list[i][0], valid_list[i][1]), (valid_list[i][2], valid_list[i][3]))
-        i += 10
-        pygame.draw.line(screen, color.PINK, (valid_list[i][0], valid_list[i][1]), (valid_list[i][2], valid_list[i][3]))
-        i += 10
-        pygame.draw.line(screen, color.PINK, (valid_list[i][0], valid_list[i][1]), (valid_list[i][2], valid_list[i][3]))
-        i += 10
-        pygame.draw.line(screen, color.PINK, (valid_list[i][0], valid_list[i][1]), (valid_list[i][2], valid_list[i][3]))
-        i += 10
-        pygame.draw.line(screen, color.PINK, (valid_list[i][0], valid_list[i][1]), (valid_list[i][2], valid_list[i][3]))
-        i += 10
-        pygame.draw.line(screen, color.PINK, (valid_list[i][0], valid_list[i][1]), (valid_list[i][2], valid_list[i][3]))
-
+    except: pass
 
     #draw points
     for i in range(len(points)):

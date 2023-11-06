@@ -72,7 +72,7 @@ import matplotlib.pyplot as plt
 
 class SVM_HingeLoss:
     def __init__(self):
-        self.C = 0.0001
+        self.C = 0.01
         self.lr = 0.0001
         self.epochs = 10000
 
@@ -108,7 +108,7 @@ class SVM_HingeLoss:
                 b_list.append(b[0])
 
             loss = self.hingeloss(X, Y, w, b)
-            if loss < 1e-3:
+            if loss < 1e-5:
                 break
         return w_list, b_list, loss
     
