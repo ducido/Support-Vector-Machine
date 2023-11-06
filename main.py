@@ -119,7 +119,6 @@ iter = 0
 error = 0
 points = []
 valid_list = []
-
 w0 = None
 class1 = False
 class2 = False
