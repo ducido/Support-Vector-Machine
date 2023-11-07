@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 # class SVM:
 
 #     def __init__(self, C = 0.0001):
